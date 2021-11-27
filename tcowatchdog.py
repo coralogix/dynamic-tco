@@ -4,7 +4,8 @@ import logging
 from coralogix.handlers import CoralogixLogger
 import requests
 import json
-import pickle
+import datetime
+
 
 
 
@@ -27,21 +28,29 @@ class TcoWatchDog:
     logger.addHandler(coralogix_handler)
     s3_client = boto3.client('s3')
 
-    def settco (self, event):
-        #self.logger.info('Hello World')
-        #print(event)
+    def main (self, event, context):
         log = {
             "id":"Coralogix TCO WatchDog",
             "event":"Trigger recived"
             }
         self.logger.warn(log)
-
-        listtco = TcoWatchDog.listTCO(self, event).decode('utf8').replace("\"", '\'')
+        #get current status of TCO Policy and override
+        #listtco = TcoWatchDog.listTCO(self, event).decode('utf8').replace("\"", '\'')
+        #listoverride = TcoWatchDog.listOverride(self, event).decode('utf8').replace("\"", '\'')
+        #Save Current status of TCO and Override to S3
+        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json', Body=json.dumps(listtco))
+        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listtco))
+        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json', Body=json.dumps(listoverride))
+        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listoverride))
         
-        listoverride = TcoWatchDog.listOverride(self, event).decode('utf8').replace("\"", '\'')
-        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json', Body=json.dumps(listtco))
-        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json', Body=json.dumps(listoverride))
-        CoralogixLogger.flush_messages()
+
+        #tcoModification = json.load(event)
+        tcoRequest = json.loads(event['body'])
+        for element in tcoRequest:
+            print(element)
+
+        #CoralogixLogger.flush_messages()
+
 
     def listTCO(self, arg):
         

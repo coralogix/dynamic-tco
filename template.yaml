@@ -1,7 +1,10 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  historical-data-migrator-lambda
+  TCO Watchdog App.
+  An app to catch hooks from coralogix notifying the the account is at 90% capacity. 
+  the app will reduce the tco policies to the lowests level.
+  At 00:00UTC 
 
 Globals:
   Function:

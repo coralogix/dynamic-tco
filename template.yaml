@@ -11,7 +11,7 @@ Globals:
     Timeout: 900
     MemorySize: 1024
 Resources:
-  IngestLogs:
+TcoWatchdog:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: tco_watchdog_lambda_app/
@@ -26,3 +26,9 @@ Resources:
           SUBSYSTEM_NAME: <your coralogx subsystem name here>
           TCO_KEY: <the api key for tco api>
           AWS_BUCKET_NAME: <The Bucket in which we store the state files in>
+      Events:
+        HttpPost: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
+          Type: Api
+          Properties:
+            Path: '/watchdog_listener'
+            Method: post

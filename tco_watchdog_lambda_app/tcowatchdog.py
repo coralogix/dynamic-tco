@@ -31,26 +31,86 @@ class TcoWatchDog:
     def main (self, event, context):
         log = {
             "id":"Coralogix TCO WatchDog",
-            "event":"Trigger recived"
+            "event":"Triggered"
             }
-        self.logger.warn(log)
+        self.logger.info(log)
         #get current status of TCO Policy and override
-        #listtco = TcoWatchDog.listTCO(self, event).decode('utf8').replace("\"", '\'')
-        #listoverride = TcoWatchDog.listOverride(self, event).decode('utf8').replace("\"", '\'')
+
+        listtco = TcoWatchDog.listTCO(self, event)
+        listoverride = TcoWatchDog.listOverride(self, event)
         #Save Current status of TCO and Override to S3
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json', Body=json.dumps(listtco))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listtco))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json', Body=json.dumps(listoverride))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listoverride))
+        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json', Body=json.dumps(json.loads(listtco)))
+        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(json.loads(listtco)))
+        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json', Body=json.dumps(json.loads(listoverride)))
+        self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(json.loads(listoverride)))
         
 
-        #tcoModification = json.load(event)
-        tcoRequest = json.loads(event['body'])
-        for element in tcoRequest:
-            print(element)
 
-        #CoralogixLogger.flush_messages()
+        TcoWatchDog.delTCO(self, listtco)
 
+        TcoWatchDog.delOverride(self, listoverride)
+
+        CoralogixLogger.flush_messages()
+
+    def delOverride(self, str_override):
+        overrides = json.loads(str_override)
+        if len(overrides) == 0:
+            log = {}
+            log = {
+                "Event" : " Deleting Override",
+                "log" : "No Override to Delete"
+                }
+            self.logger.info(log)
+        #print(overrides)
+        for element in overrides:
+            arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/overrides/'+element["id"],
+        headers = {
+                        'content-type': 'application/json',
+                        'Authorization': "Bearer " + self.TCO_KEY
+                    }
+        )
+            
+            if arg.status_code != 200:
+                print('Error Deleting Override')
+                log = {}
+                log = {
+                "Event" : "Error Deleting Override",
+                "log" : element
+                }
+                self.logger.error(log)
+
+    def delTCO(self, str_tcos):
+        tcos = json.loads(str_tcos)
+        if len(tcos) == 0:
+            log = {}
+            log = {
+                "Event" : " Deleting Policy",
+                "log" : "No Policy to Delete"
+                }
+            self.logger.info(log)
+        
+        for element in tcos:
+            arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/policies/'+element["id"],
+        headers = {
+                        'content-type': 'application/json',
+                        'Authorization': "Bearer " + self.TCO_KEY
+                    }
+        )
+            log = {}
+            log = {
+                "Event" : " Deleting Policy",
+                "log" : element
+                }
+            self.logger.info(log)
+            if arg.status_code != 200:
+                print('Error Deleting Policy')
+                log = {}
+                log = {
+                "Event" : "Error Deleting Policy",
+                "log" : element
+                }
+                self.logger.error(log)
+            
 
     def listTCO(self, arg):
         
@@ -65,7 +125,8 @@ class TcoWatchDog:
             "Event" : "List Existing TCO",
             "log" : arg.content.decode('UTF8').replace("\"", '\'')
         }
-        self.logger.info(log)
+        #self.logger.info(log)
+        #print(type(arg.content))
         return (arg.content)
     
     def listOverride(self, arg):
@@ -81,5 +142,6 @@ class TcoWatchDog:
             "Event":"List Existing TCO Overrides",
             "log":arg.content.decode('UTF8').replace("\"", '\'')
         }
-        self.logger.info(log)
+        #print(log)
+        #self.logger.info(log)
         return (arg.content)

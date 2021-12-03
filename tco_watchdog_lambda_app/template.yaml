@@ -14,9 +14,9 @@ Resources:
   TcoWatchdog:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: tco_watchdog_lambda_app/
+      CodeUri: ./
       Handler: app.lambda_handler
-      Runtime: python3.8
+      Runtime: python3.9
       Role: <your lambda function execution arn string>
       ReservedConcurrentExecutions: 1
       Environment:

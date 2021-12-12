@@ -49,9 +49,29 @@ class TcoWatchDog:
         TcoWatchDog.delTCO(self, listtco)
 
         TcoWatchDog.delOverride(self, listoverride)
-
+        
+        TcoWatchDog.applyTco(self, event, context)
+        
         CoralogixLogger.flush_messages()
-
+    def applyTco(self,event,context):
+        new_rules=json.loads(event["body"])
+        #print(type(new_rules))
+        for element in new_rules:
+            #print(element)
+            arg = requests.post('https://api.coralogix.com/api/v1/external/tco/policies',
+            headers = {
+                            'content-type': 'application/json',
+                            'Authorization': "Bearer " + self.TCO_KEY
+                        }, json = element)
+            log = {}
+            log = {
+                "Event" : "Apply  TCO",
+                "status_code" : arg.status_code,
+                "log" : arg.text,
+                "tco_policy" : element
+            }
+            self.logger.info(log)
+    
     def delOverride(self, str_override):
         overrides = json.loads(str_override)
         if len(overrides) == 0:
@@ -61,24 +81,36 @@ class TcoWatchDog:
                 "log" : "No Override to Delete"
                 }
             self.logger.info(log)
+            return None
         #print(overrides)
-        for element in overrides:
-            arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/overrides/'+element["id"],
+        
+        
+        arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
         headers = {
                         'content-type': 'application/json',
                         'Authorization': "Bearer " + self.TCO_KEY
-                    }
+                    }, json = overrides
         )
             
-            if arg.status_code != 200:
-                print('Error Deleting Override')
-                log = {}
-                log = {
-                "Event" : "Error Deleting Override",
-                "log" : element
-                }
-                self.logger.error(log)
+        if arg.status_code != 200:
+            print('Error Deleting Override')
+            print(overrides)
+            log = {}
+            log = {
+            "Event" : "Error Deleting Override",
+            "log" : overrides
+            }
+            self.logger.error(log)
+        
+        log = {}
+        log = {
+            "Event" : " Deleting Override",
+            "log" : overrides
+        }
+        self.logger.error(log)
 
+    
+    
     def delTCO(self, str_tcos):
         tcos = json.loads(str_tcos)
         if len(tcos) == 0:

@@ -5,6 +5,10 @@ from coralogix.handlers import CoralogixLogger
 import requests
 import json
 import datetime
+import tcowatchdog
+
+# We need to check if configuration is less 24hs before updating 
+
 
 class UtcResetter():
     def __init__(self):
@@ -26,18 +30,22 @@ class UtcResetter():
     coralogix_handler = CoralogixLogger(PRIVATE_KEY, APP_NAME, SUB_SYSTEM)
     logger.addHandler(coralogix_handler)
     s3_client = boto3.client('s3')
-
-    def main (self, event, context):
+    
+    def main (self, event, context):  
         log = {
             "id":"Coralogix TCO Resetter",
             "event":"Triggered"
             }
         self.logger.info(log)
         
+        listtco = tcowatchdog.TcoWatchDog.listTCO(self, event)
+        listoverride = tcowatchdog.TcoWatchDog.listOverride(self, event)
+        tcowatchdog.TcoWatchDog.delTCO(self, listtco)
+        tcowatchdog.TcoWatchDog.delOverride(self, listoverride)
         UtcResetter.restoreTCO(self, event, context)
         UtcResetter.restoreOverride(self, event, context)
     CoralogixLogger.flush_messages()
-
+    #Needs to use Bulk
     def restoreTCO(self, event, context):
         listtco = json.loads(self.s3_client.get_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json')['Body'].read())
         for element in listtco:
@@ -57,23 +65,26 @@ class UtcResetter():
                 "tco_policy" : element
             }
             self.logger.info(log)
-    
+    #Need to use Bulk
     def restoreOverride(self, event, context):
         listoverride = json.loads(self.s3_client.get_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json')['Body'].read())
+        #print(type(listoverride))
+        
         for element in listoverride:
             del element['id']
-            arg = requests.post('https://api.coralogix.com/api/v1/external/tco/overrides',
+        
+        arg = requests.post('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
             headers = {
                             'content-type': 'application/json',
                             'Authorization': "Bearer " + self.TCO_KEY
                         },
-            json = element
+            json = listoverride
             )
-            log = {}
-            log = {
-                "Event" : "Restoring  Overrides",
-                "status_code" : arg.status_code,
-                "log" : arg.text,
-                "tco_policy" : element
+        log = {}
+        log = {
+            "Event" : "Restoring  Overrides",
+            "status_code" : arg.status_code,
+            "log" : arg.text,
+            "tco_policy" : listoverride
             }
-            self.logger.info(log)
+        self.logger.info(log)

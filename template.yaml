@@ -16,19 +16,19 @@ Resources:
     Properties:
       CodeUri: tco_watchdog_lambda_app/
       Handler: app.lambda_handler
-      Runtime: python3.8
-      Role: <your lambda function execution arn string>
+      Runtime: python3.9
       ReservedConcurrentExecutions: 1
       Environment:
         Variables:
-          PRIVATE_KEY: <your coralogix token goes here>
-          APPLICATION_NAME: <your coralogx application name here>
-          SUBSYSTEM_NAME: <your coralogx subsystem name here>
-          TCO_KEY: <the api key for tco api>
-          AWS_BUCKET_NAME: <The Bucket in which we store the state files in>
+          PRIVATE_KEY: "be1fe366-ed73-a842-bb3e-74fa24c1c3fe"
+          APPLICATION_NAME: "lambdaTCO"
+          SUBSYSTEM_NAME: "LambdaTCO"
+          TCO_KEY: "94d716f2-d05d-4635-a5cb-5e0b3c1f308a"
+          AWS_BUCKET_NAME: "tcowatchdogbucket"
+          FUNCTION_KEY: "thisismysecretkey"
       Events:
-        HttpPost: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
+        ApiEvent: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
           Type: Api
           Properties:
-            Path: '/watchdog_listener'
+            Path: '/listener'
             Method: post

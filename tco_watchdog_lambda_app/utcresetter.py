@@ -7,7 +7,6 @@ import json
 import datetime
 import tcowatchdog
 
-# We need to check if configuration is less 24hs before updating 
 
 
 class UtcResetter():
@@ -19,8 +18,8 @@ class UtcResetter():
     
     #Take variables from environment    
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
-    APP_NAME = os.environ.get('APPLICATION_NAME', 'NO_APP_NAME')
-    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'NO_SUB_NAME')
+    APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
+    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'UTCRESETTER')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
 
@@ -45,19 +44,13 @@ class UtcResetter():
         UtcResetter.restoreTCO(self, event, context)
         UtcResetter.restoreOverride(self, event, context)
     CoralogixLogger.flush_messages()
-    #Needs to use Bulk
-    def restoreTCO(self, event, context):
-        listtco = json.loads(self.s3_client.get_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json')['Body'].read())
+    def restoreTCO(self, event, context, bucket_name = AWS_BUCKET_NAME):
+        
+        listtco = json.loads(self.s3_client.get_object(Bucket=bucket_name,Key='listtco_latest.json')['Body'].read())
         for element in listtco:
             del element['id']
             arg = requests.post('https://api.coralogix.com/api/v1/external/tco/policies',
-            headers = {
-                            'content-type': 'application/json',
-                            'Authorization': "Bearer " + self.TCO_KEY
-                        },
-            json = element
-            )
-            log = {}
+                    headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Restoring  TCO",
                 "status_code" : arg.status_code,
@@ -65,22 +58,14 @@ class UtcResetter():
                 "tco_policy" : element
             }
             self.logger.info(log)
-    #Need to use Bulk
-    def restoreOverride(self, event, context):
-        listoverride = json.loads(self.s3_client.get_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json')['Body'].read())
-        #print(type(listoverride))
-        
+
+    def restoreOverride(self, event, context, bucket_name = AWS_BUCKET_NAME):
+        listoverride = json.loads(self.s3_client.get_object(Bucket=bucket_name,Key='listoverride_latest.json')['Body'].read())
         for element in listoverride:
             del element['id']
-        
+
         arg = requests.post('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
-            headers = {
-                            'content-type': 'application/json',
-                            'Authorization': "Bearer " + self.TCO_KEY
-                        },
-            json = listoverride
-            )
-        log = {}
+            headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = listoverride)
         log = {
             "Event" : "Restoring  Overrides",
             "status_code" : arg.status_code,

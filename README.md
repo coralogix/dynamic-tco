@@ -19,5 +19,10 @@ $ sam deploy --guided
 
 Add S3 Permission to Lambda Created Role ##(This should be done by Sam Template)
 
-POST To ApiGateway must include header  
+POST To ApiGateway must include header  that will be compared with the variable FUNCTION_KEY
   "Function-Key": "thisismysecretkey"
+
+For Other Cluster use Env Variable:
+CORALOGIX_LOG_URL=https://<Cluster URL>/api/v1/logs
+where <Cluster URL> is
+coralogix.com	or coralogix.us	or app.coralogix.in

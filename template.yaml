@@ -20,11 +20,11 @@ Resources:
       ReservedConcurrentExecutions: 1
       Environment:
         Variables:
-          PRIVATE_KEY: "be1fe366-ed73-a842-bb3e-74fa24c1c3fe"
-          APPLICATION_NAME: "lambdaTCO"
-          SUBSYSTEM_NAME: "LambdaTCO"
-          TCO_KEY: "94d716f2-d05d-4635-a5cb-5e0b3c1f308a"
-          AWS_BUCKET_NAME: "tcowatchdogbucket"
+          PRIVATE_KEY: "PRIVATE_KEY"
+          APPLICATION_NAME: "APP_NAME"
+          SUBSYSTEM_NAME: "SUBSYSTEM_NAME"
+          TCO_KEY: "CORALOGIX_TCO_KEY"
+          AWS_BUCKET_NAME: "AWSBUCKEY"
           FUNCTION_KEY: "thisismysecretkey"
       Events:
         ApiEvent: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python

@@ -14,21 +14,21 @@ Resources:
   TcoWatchdog:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: tco_watchdog_lambda_app/
+      CodeUri: ./
       Handler: app.lambda_handler
       Runtime: python3.9
+      Role: <your lambda function execution arn string>
       ReservedConcurrentExecutions: 1
       Environment:
         Variables:
-          PRIVATE_KEY: "PRIVATE_KEY"
-          APPLICATION_NAME: "APP_NAME"
-          SUBSYSTEM_NAME: "SUBSYSTEM_NAME"
-          TCO_KEY: "CORALOGIX_TCO_KEY"
-          AWS_BUCKET_NAME: "AWSBUCKEY"
-          FUNCTION_KEY: "thisismysecretkey"
+          PRIVATE_KEY: <your coralogix token goes here>
+          APPLICATION_NAME: <your coralogx application name here>
+          SUBSYSTEM_NAME: <your coralogx subsystem name here>
+          TCO_KEY: <the api key for tco api>
+          AWS_BUCKET_NAME: <The Bucket in which we store the state files in>
       Events:
-        ApiEvent: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
+        HttpPost: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
           Type: Api
           Properties:
-            Path: '/listener'
+            Path: '/watchdog_listener'
             Method: post

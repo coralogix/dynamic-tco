@@ -16,8 +16,8 @@ class TcoWatchDog:
     
     #Take variables from environment    
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
-    APP_NAME = os.environ.get('APPLICATION_NAME', 'NO_APP_NAME')
-    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'NO_SUB_NAME')
+    APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
+    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'TCOWATCHDOG')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
 
@@ -28,42 +28,109 @@ class TcoWatchDog:
     logger.addHandler(coralogix_handler)
     s3_client = boto3.client('s3')
 
-    def main (self, event, context):
+    def main (self, event, context, bucket_name = AWS_BUCKET_NAME):
         log = {
             "id":"Coralogix TCO WatchDog",
-            "event":"Trigger recived"
+            "event":"Triggered"
             }
-        self.logger.warn(log)
+        self.logger.info(log)
         #get current status of TCO Policy and override
-        #listtco = TcoWatchDog.listTCO(self, event).decode('utf8').replace("\"", '\'')
-        #listoverride = TcoWatchDog.listOverride(self, event).decode('utf8').replace("\"", '\'')
-        #Save Current status of TCO and Override to S3
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_latest.json', Body=json.dumps(listtco))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listtco))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_latest.json', Body=json.dumps(listoverride))
-        #self.s3_client.put_object(Bucket='tcowatchdogbucket',Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=json.dumps(listoverride))
+
+        listtco = TcoWatchDog.listTCO(self, event)
+        listoverride = TcoWatchDog.listOverride(self, event)
+        #Save Current status of TCO and Override to S3    
+        self.s3_client.put_object(Bucket=bucket_name,Key='listtco_latest.json', Body=listtco) 
+        self.s3_client.put_object(Bucket=bucket_name,Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=listtco)
+        self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_latest.json', Body=listoverride)
+        self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=listoverride)
         
 
-        #tcoModification = json.load(event)
-        tcoRequest = json.loads(event['body'])
-        for element in tcoRequest:
-            print(element)
 
-        #CoralogixLogger.flush_messages()
+        TcoWatchDog.delTCO(self, listtco)
 
+        TcoWatchDog.delOverride(self, listoverride)
+        
+        TcoWatchDog.applyTco(self, event, context)
+        
+        CoralogixLogger.flush_messages()
+        
+
+    def applyTco(self,event,context):
+        new_rules=json.loads(event["body"])
+        for element in new_rules:
+            arg = requests.post('https://api.coralogix.com/api/v1/external/tco/policies',
+            headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
+            log = {
+                "Event" : "Apply TCO",
+                "status_code" : arg.status_code,
+                "log" : arg.text,
+                "tco_policy" : element
+            }
+            self.logger.info(log)
+    
+    def delOverride(self, str_override):
+        overrides = json.loads(str_override)
+        if len(overrides) == 0:
+            log = {}
+            log = {
+                "Event" : " Deleting Override",
+                "log" : "No Override to Delete"
+                }
+            self.logger.info(log)
+            return None        
+        arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
+        headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = overrides)
+            
+        if arg.status_code != 200:
+            print('Error Deleting Override')
+            print(overrides)
+            log = {
+            "Event" : "Error Deleting Override",
+            "log" : overrides
+            }
+            self.logger.error(log)
+        
+        log = {
+            "Event" : " Deleting Override",
+            "log" : overrides
+        }
+        self.logger.error(log)
+    
+    def delTCO(self, str_tcos):
+        tcos = json.loads(str_tcos)
+        if len(tcos) == 0:
+            log = {
+                "Event" : " Deleting Policy",
+                "log" : "No Policy to Delete"
+                }
+            self.logger.info(log)
+        
+        for element in tcos:
+            arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/policies/'+element["id"],
+                    headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
+                )
+            log = {
+                "Event" : " Deleting Policy",
+                "log" : element
+                }
+            self.logger.info(log)
+            if arg.status_code != 200:
+                print('Error Deleting Policy')
+                log = {
+                "Event" : "Error Deleting Policy",
+                "log" : element
+                }
+                self.logger.error(log)
+            
 
     def listTCO(self, arg):
         
         arg = requests.get('https://api.coralogix.com/api/v1/external/tco/policies',
-        headers = {
-                        'content-type': 'application/json',
-                        'Authorization': "Bearer " + self.TCO_KEY
-                    }
-        )
-        log = {}
+                    headers = { 'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
+                    )
         log = {
             "Event" : "List Existing TCO",
-            "log" : arg.content.decode('UTF8').replace("\"", '\'')
+            "log" : arg.content
         }
         self.logger.info(log)
         return (arg.content)
@@ -73,13 +140,11 @@ class TcoWatchDog:
         arg = requests.get('https://api.coralogix.com/api/v1/external/tco/overrides',
         headers = {
                         'content-type': 'application/json',
-                        'Authorization': "Bearer " + self.TCO_KEY
-                    }
+                        'Authorization': "Bearer " + self.TCO_KEY}
         )
-        log = {}
         log = {
             "Event":"List Existing TCO Overrides",
-            "log":arg.content.decode('UTF8').replace("\"", '\'')
+            "log":arg.content
         }
         self.logger.info(log)
         return (arg.content)

@@ -30,8 +30,37 @@ POST To ApiGateway must include header  that will be compared with the variable 
 
   "Function-Key": "thisismysecretkey"
 
-For Other Cluster use Env Variable:
-CORALOGIX_LOG_URL=https://<Cluster URL>/api/v1/logs
-where <Cluster URL> is
-coralogix.com	or coralogix.us	or app.coralogix.in
+For Other Cluster use Env Variable: CORALOGIX_LOG_URL=https:///api.coralogix.com/v1/logs where is coralogix.com or coralogix.us or app.coralogix.in
+
+
+
+
+The payload to the APIGateway created needs to be with the same syntax as the TCO API Create Policy (https://coralogix.com/tutorials/tco-optimizer-api/)
+
+Example:
+[
+  {
+    "name": "All low",
+    "priority": "low",
+    "severities": [
+      4,
+      5,
+      6
+    ]
+  },
+  {
+    "name": "Policy Creation test new",
+    "priority": "medium",
+    "severities": [
+      1,
+      2,
+      3
+    ]
+  }
+]
+
+
+This payload is the  Policy/Policies that will be put in place once the Usage Alert is triggered.
+
+
 

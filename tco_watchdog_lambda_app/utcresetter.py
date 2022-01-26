@@ -16,14 +16,12 @@ class UtcResetter():
         if not os.environ.get('TCO_KEY'):
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
     
-    #Take variables from environment    
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'UTCRESETTER')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
 
-    #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)  
     coralogix_handler = CoralogixLogger(PRIVATE_KEY, APP_NAME, SUB_SYSTEM)

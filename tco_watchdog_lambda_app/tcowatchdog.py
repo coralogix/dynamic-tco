@@ -144,3 +144,4 @@ class TcoWatchDog:
         }
         self.logger.info(log)
         return (arg.content)
+        

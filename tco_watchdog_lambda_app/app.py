@@ -8,7 +8,7 @@ def lambda_handler(event,context):
         tcoresetter = utcresetter.UtcResetter()
         tcoresetter.main(event, context)
     else:
-        obj = json.loads(json.dumps(event)) #Test Again.
+        obj = json.loads(json.dumps(event)) 
         if obj["headers"]["Function-Key"] != os.environ.get('FUNCTION_KEY'):
             print("Missing Auth Header !!")
             return {

@@ -1,66 +1,35 @@
 # TCO Watchdog App
-## Deploy the application
+This application is Basically a tool to facilitate the "No data lost philosophy in Coralogix"
+This tool will use a change in the TCO functionalities in Coralogix to change the manner in which the account units are counted and allow for much more data to flow in but with less features enabled to it.
 
-Python 3.9
+This compramise will be reverted every day at 00:00 UTC only to wait for the trigger to become active again.
+We do suggest that utilizing this tool would be a second line of defence to a Pay-as-You-Go option enabled on the account.
 
+# Requirements:
+- An S3 bucket for the lambda to use
+- An IAM role for the lambda execution and the S3 (list, read, write)
+- Your aws User should have permissions to deploy lambdas.
+- Your User should have AWS CLI.
+- Coralogix audit account access.
 
+# Installation of the solution
+## Installing the Lambda function:
+This lambda will accept POST calles to API Gateway and will keep the original config and current state on S3.
+This will be an alternative to using a Database which will allways cost Somthing, as the rate of IO is rather low here.
+S3 is cheaper and robust.
 
-$ sam build 
-$ sam deploy --guided
-
-
-Add S3 Permission to Lambda Created Role 
-
-Go into the Created lambda and Edit the folling Env Variables from the UI:
-
-PRIVATE_KEY :
-    This is the Coralogix Private_key for sending logs
-APP_NAME :
-    Your application Name in Coralogix.
-SUBSYSTEM_NAME:
-    Your Subsystem Name in Coralogix.
-
-CORALOGIX_TCO_KEY:
-    This is the TCO Api Key. You can find it in API "Access Alerts, Rules and Tags API Key"
-
-AWSBUCKEY
-    This is the bucket needed for saving TCO history  and State.
-    
-POST To ApiGateway must include header  that will be compared with the variable FUNCTION_KEY
-
-  "Function-Key": "thisismysecretkey"
-
-For Other Cluster use Env Variable: CORALOGIX_LOG_URL=https:///api.coralogix.com/v1/logs where is coralogix.com or coralogix.us or app.coralogix.in
+The lambda uses AWS SAM deployment framework.
+Below are the steps to install the lambda:
+- Clone this repository to the machine you wish to deploy from
+- Update the Values on the config file
+- Deploy the Lambda.
 
 
+## Setting the new TCO policies to enforce by the tool.
 
 
-The payload to the APIGateway created needs to be with the same syntax as the TCO API Create Policy (https://coralogix.com/tutorials/tco-optimizer-api/)
-
-Example:
-[
-  {
-    "name": "All low",
-    "priority": "low",
-    "severities": [
-      4,
-      5,
-      6
-    ]
-  },
-  {
-    "name": "Policy Creation test new",
-    "priority": "medium",
-    "severities": [
-      1,
-      2,
-      3
-    ]
-  }
-]
-
-
-This payload is the  Policy/Policies that will be put in place once the Usage Alert is triggered.
-
+# Comments and Collaboration:
+If you have any Comment or Collaboration, please use github issue, create a pull request or just comment us in our Support Chat inside your Coralogix Account
+Any suggestion will be much appriciated 
 
 

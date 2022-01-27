@@ -15,7 +15,8 @@ class UtcResetter():
             raise Exception("Missing the PRIVATE_KEY environment variable. CANNOT CONTINUE")
         if not os.environ.get('TCO_KEY'):
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
-    
+            
+    TCO_ENDPOINT = os.environ.get('TCO_ENDPOINT', 'https://api.coralogix.com/api/v1/external/tco')
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'UTCRESETTER')
@@ -47,7 +48,7 @@ class UtcResetter():
         listtco = json.loads(self.s3_client.get_object(Bucket=bucket_name,Key='listtco_latest.json')['Body'].read())
         for element in listtco:
             del element['id']
-            arg = requests.post('https://api.coralogix.com/api/v1/external/tco/policies',
+            arg = requests.post(self.TCO_ENDPOINT+'/policies',
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Restoring  TCO",
@@ -62,7 +63,7 @@ class UtcResetter():
         for element in listoverride:
             del element['id']
 
-        arg = requests.post('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
+        arg = requests.post(self.TCO_ENDPOINT+'/overrides/bulk',
             headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = listoverride)
         log = {
             "Event" : "Restoring  Overrides",

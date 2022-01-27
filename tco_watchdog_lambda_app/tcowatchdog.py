@@ -14,6 +14,7 @@ class TcoWatchDog:
         if not os.environ.get('TCO_KEY'):
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
     
+    TCO_ENDPOINT = os.environ.get('TCO_ENDPOINT', 'https://api.coralogix.com/api/v1/external/tco')
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'TCOWATCHDOG')
@@ -54,7 +55,7 @@ class TcoWatchDog:
     def applyTco(self,event,context):
         new_rules=json.loads(event["body"])
         for element in new_rules:
-            arg = requests.post('https://api.coralogix.com/api/v1/external/tco/policies',
+            arg = requests.post(self.TCO_ENDPOINT+'/policies',
             headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Apply TCO",
@@ -74,7 +75,7 @@ class TcoWatchDog:
                 }
             self.logger.info(log)
             return None        
-        arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/overrides/bulk',
+        arg = requests.delete(self.TCO_ENDPOINT+'/overrides/bulk',
         headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = overrides)
             
         if arg.status_code != 200:
@@ -102,7 +103,7 @@ class TcoWatchDog:
             self.logger.info(log)
         
         for element in tcos:
-            arg = requests.delete('https://api.coralogix.com/api/v1/external/tco/policies/'+element["id"],
+            arg = requests.delete(self.TCO_ENDPOINT+'/policies/'+element["id"],
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                 )
             log = {
@@ -121,7 +122,7 @@ class TcoWatchDog:
 
     def listTCO(self, arg):
         
-        arg = requests.get('https://api.coralogix.com/api/v1/external/tco/policies',
+        arg = requests.get(self.TCO_ENDPOINT+'/policies',
                     headers = { 'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                     )
         log = {
@@ -133,7 +134,7 @@ class TcoWatchDog:
     
     def listOverride(self, arg):
         
-        arg = requests.get('https://api.coralogix.com/api/v1/external/tco/overrides',
+        arg = requests.get(self.TCO_ENDPOINT+'/overrides',
         headers = {
                         'content-type': 'application/json',
                         'Authorization': "Bearer " + self.TCO_KEY}

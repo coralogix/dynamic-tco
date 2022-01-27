@@ -14,6 +14,7 @@ class TcoWatchDog:
         if not os.environ.get('TCO_KEY'):
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
     
+    #Take variables from environment   
     TCO_ENDPOINT = os.environ.get('TCO_ENDPOINT', 'https://api.coralogix.com/api/v1/external/tco')
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
@@ -21,6 +22,7 @@ class TcoWatchDog:
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
 
+    #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)  
     coralogix_handler = CoralogixLogger(PRIVATE_KEY, APP_NAME, SUB_SYSTEM)
@@ -33,9 +35,10 @@ class TcoWatchDog:
             "event":"Triggered"
             }
         self.logger.info(log)
-
+        #Get current status of TCO Policy and override
         listtco = TcoWatchDog.listTCO(self, event)
         listoverride = TcoWatchDog.listOverride(self, event)
+        #Save Current status of TCO and Override to S3 
         self.s3_client.put_object(Bucket=bucket_name,Key='listtco_latest.json', Body=listtco) 
         self.s3_client.put_object(Bucket=bucket_name,Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=listtco)
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_latest.json', Body=listoverride)
@@ -145,4 +148,3 @@ class TcoWatchDog:
         }
         self.logger.info(log)
         return (arg.content)
-        

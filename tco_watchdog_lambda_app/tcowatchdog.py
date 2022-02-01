@@ -9,24 +9,27 @@ import datetime
 
 class TcoWatchDog:
     def __init__(self):
+    
         if not os.environ.get('PRIVATE_KEY'):
             raise Exception("Missing the PRIVATE_KEY environment variable. CANNOT CONTINUE")
         if not os.environ.get('TCO_KEY'):
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
     
     #Take variables from environment   
-    TCO_ENDPOINT = os.environ.get('TCO_ENDPOINT', 'https://api.coralogix.com/api/v1/external/tco')
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'TCOWATCHDOG')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
 
+    coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/api/v1/logs').split("/")[2]
+
     #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)  
-    coralogix_handler = CoralogixLogger(PRIVATE_KEY, APP_NAME, SUB_SYSTEM)
-    logger.addHandler(coralogix_handler)
+    if not logger.handlers:
+        coralogix_handler = CoralogixLogger(PRIVATE_KEY, APP_NAME, SUB_SYSTEM)
+        logger.addHandler(coralogix_handler)
     s3_client = boto3.client('s3')
 
     def main (self, event, context, bucket_name = AWS_BUCKET_NAME):
@@ -58,7 +61,7 @@ class TcoWatchDog:
     def applyTco(self,event,context):
         new_rules=json.loads(event["body"])
         for element in new_rules:
-            arg = requests.post(self.TCO_ENDPOINT+'/policies',
+            arg = requests.post('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
             headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Apply TCO",
@@ -71,14 +74,13 @@ class TcoWatchDog:
     def delOverride(self, str_override):
         overrides = json.loads(str_override)
         if len(overrides) == 0:
-            log = {}
             log = {
                 "Event" : " Deleting Override",
                 "log" : "No Override to Delete"
                 }
             self.logger.info(log)
             return None        
-        arg = requests.delete(self.TCO_ENDPOINT+'/overrides/bulk',
+        arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/overrides/bulk',
         headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = overrides)
             
         if arg.status_code != 200:
@@ -106,7 +108,7 @@ class TcoWatchDog:
             self.logger.info(log)
         
         for element in tcos:
-            arg = requests.delete(self.TCO_ENDPOINT+'/policies/'+element["id"],
+            arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/policies/'+element["id"],
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                 )
             log = {
@@ -124,27 +126,28 @@ class TcoWatchDog:
             
 
     def listTCO(self, arg):
-        
-        arg = requests.get(self.TCO_ENDPOINT+'/policies',
+        arg = requests.get('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
                     headers = { 'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                     )
+        new_content = json.loads(arg.content)
         log = {
             "Event" : "List Existing TCO",
-            "log" : arg.content
+            "log" : new_content
         }
         self.logger.info(log)
         return (arg.content)
     
     def listOverride(self, arg):
-        
-        arg = requests.get(self.TCO_ENDPOINT+'/overrides',
+        arg = requests.get('https://'+self.coralogix_domain+'/api/v1/external/tco/overrides',
         headers = {
                         'content-type': 'application/json',
                         'Authorization': "Bearer " + self.TCO_KEY}
         )
+        
+        new_content = json.loads(arg.content)
         log = {
             "Event":"List Existing TCO Overrides",
-            "log":arg.content
+            "log":new_content
         }
         self.logger.info(log)
         return (arg.content)

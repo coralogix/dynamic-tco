@@ -9,7 +9,7 @@ We do suggest that utilizing this tool would be a second line of defence to a Pa
 - An S3 bucket for the lambda to use
 - An IAM role for the lambda execution and the S3 (list, read, write)
 - Your aws User should have permissions to deploy lambdas.
-- Your User should have AWS CLI.
+- Your User should have AWS CLI and SAM.
 - Coralogix audit account access.
 
 # Installation of the solution
@@ -26,7 +26,9 @@ Below are the steps to install the lambda:
 
 
 ## Setting the new TCO policies to enforce by the tool.
-
+This lambda uses Coralogix TCO API to enforce the new policies.
+In the Body of the request to the API Gateway will have an array of policies.
+To know more, please refere to https://coralogix.com/tutorials/tco-optimizer-api/ "Create new Policy" section.
 
 # Comments and Collaboration:
 If you have any Comment or Collaboration, please use github issue, create a pull request or just comment us in our Support Chat inside your Coralogix Account

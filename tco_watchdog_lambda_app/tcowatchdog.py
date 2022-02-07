@@ -6,24 +6,19 @@ import requests
 import json
 import datetime
 
-
 class TcoWatchDog:
-    def __init__(self):
-    
+    def __init__(self):   
         if not os.environ.get('PRIVATE_KEY'):
             raise Exception("Missing the PRIVATE_KEY environment variable. CANNOT CONTINUE")
         if not os.environ.get('TCO_KEY'):
-            raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")
-    
+            raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")   
     #Take variables from environment   
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
     APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'TCOWATCHDOG')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
-
     coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/api/v1/logs').split("/")[2]
-
     #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)  
@@ -46,18 +41,11 @@ class TcoWatchDog:
         self.s3_client.put_object(Bucket=bucket_name,Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=listtco)
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_latest.json', Body=listoverride)
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=listoverride)
-        
-
-
         TcoWatchDog.delTCO(self, listtco)
-
-        TcoWatchDog.delOverride(self, listoverride)
-        
-        TcoWatchDog.applyTco(self, event, context)
-        
+        TcoWatchDog.delOverride(self, listoverride)        
+        TcoWatchDog.applyTco(self, event, context)        
         CoralogixLogger.flush_messages()
         
-
     def applyTco(self,event,context):
         new_rules=json.loads(event["body"])
         for element in new_rules:
@@ -81,8 +69,7 @@ class TcoWatchDog:
             self.logger.info(log)
             return None        
         arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/overrides/bulk',
-        headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = overrides)
-            
+        headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = overrides)            
         if arg.status_code != 200:
             print('Error Deleting Override')
             print(overrides)
@@ -90,8 +77,7 @@ class TcoWatchDog:
             "Event" : "Error Deleting Override",
             "log" : overrides
             }
-            self.logger.error(log)
-        
+            self.logger.error(log)        
         log = {
             "Event" : " Deleting Override",
             "log" : overrides
@@ -105,8 +91,7 @@ class TcoWatchDog:
                 "Event" : " Deleting Policy",
                 "log" : "No Policy to Delete"
                 }
-            self.logger.info(log)
-        
+            self.logger.info(log)        
         for element in tcos:
             arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/policies/'+element["id"],
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
@@ -124,7 +109,6 @@ class TcoWatchDog:
                 }
                 self.logger.error(log)
             
-
     def listTCO(self, arg):
         arg = requests.get('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
                     headers = { 'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
@@ -142,8 +126,7 @@ class TcoWatchDog:
         headers = {
                         'content-type': 'application/json',
                         'Authorization': "Bearer " + self.TCO_KEY}
-        )
-        
+        )        
         new_content = json.loads(arg.content)
         log = {
             "Event":"List Existing TCO Overrides",

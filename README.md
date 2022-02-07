@@ -22,8 +22,20 @@ The lambda uses AWS SAM deployment framework.
 Below are the steps to install the lambda:
 - Clone this repository to the machine you wish to deploy from
 - Deploy the Lambda.
+```
+# sam build
+# sam deploy --guided
+```
 - Update Lambdas Environmental Variables from AWS Console.
 
+Variable |Description
+----------|------------
+APPLICATION_NAME |Application Name in Coralogix.
+AWS_BUCKET_NAME |Bucket the function will use to save tco status. Created in the requirements.
+FUNCTION_KEY |Secret key that is used to authenticate against the lambda function.
+PRIVATE_KEY |Coralogix Send your logs Api Key. Data Flow->ApiKeys
+SUBSYSTEM_NAME |Subsystem name in Coralogix
+TCO_KEY |Coralogix TCO Api Key. Data Flow->ApiKeys
 
 ## Setting the new TCO policies to enforce by the tool.
 This lambda uses Coralogix TCO API to enforce the new policies.

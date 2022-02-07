@@ -7,7 +7,6 @@ We do suggest that utilizing this tool would be a second line of defence to a Pa
 
 # Requirements:
 - An S3 bucket for the lambda to use
-- An IAM role for the lambda execution and the S3 (list, read, write)
 - Your aws User should have permissions to deploy lambdas.
 - Your User should have AWS CLI and SAM.
 - Coralogix audit account access.
@@ -26,6 +25,7 @@ Below are the steps to install the lambda:
 # sam build
 # sam deploy --guided
 ```
+- Go to the created Lambda function and add AmazonS3FullAccess Polict to the Excecution Role.
 - Update Lambdas Environmental Variables from AWS Console.
 
 Variable |Description

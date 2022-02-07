@@ -21,8 +21,8 @@ S3 is cheaper and robust.
 The lambda uses AWS SAM deployment framework.
 Below are the steps to install the lambda:
 - Clone this repository to the machine you wish to deploy from
-- Update the Values on the config file
 - Deploy the Lambda.
+- Update Lambdas Environmental Variables from AWS Console.
 
 
 ## Setting the new TCO policies to enforce by the tool.

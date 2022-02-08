@@ -37,6 +37,18 @@ PRIVATE_KEY |Coralogix Send your logs Api Key. Data Flow->ApiKeys
 SUBSYSTEM_NAME |Subsystem name in Coralogix
 TCO_KEY |Coralogix TCO Api Key. Data Flow->ApiKeys
 
+
+If your Account is not in the EU region (the account url does not have a .com suffix)
+you will need to add this environment variable:
+```
+CORALOGIX_LOG_URL=https://<coralogix_cluster_url>/api/v1/logs
+```
+Cluster location | coralogix_cluster_url
+-----------------| --------------------
+US| api.coralogix.us
+IN| api.app.coralogix.in
+Singapore| api.coralogixsg.com
+
 ## Setting the new TCO policies to enforce by the tool.
 This lambda uses Coralogix TCO API to enforce the new policies.
 In the Body of the request to the API Gateway will have an array of policies.

@@ -25,7 +25,7 @@ Below are the steps to install the lambda:
 # sam build
 # sam deploy --guided
 ```
-- Go to the created Lambda function and add AmazonS3FullAccess Polict to the Excecution Role.
+- Go to the created Lambda function and add AmazonS3FullAccess Policy to the Excecution Role.
 - Update Lambdas Environmental Variables from AWS Console.
 
 Variable |Description

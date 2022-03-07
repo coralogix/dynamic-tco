@@ -43,7 +43,8 @@ class TcoWatchDog:
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=listoverride)
         TcoWatchDog.delTCO(self, listtco)
         TcoWatchDog.delOverride(self, listoverride)        
-        TcoWatchDog.applyTco(self, event, context)        
+        TcoWatchDog.applyTco(self, event, context)
+        self.s3_client.put_object(Bucket=bucket_name,Key='tcowatchdog_executed', Body="True")        
         CoralogixLogger.flush_messages()
         
     def applyTco(self,event,context):

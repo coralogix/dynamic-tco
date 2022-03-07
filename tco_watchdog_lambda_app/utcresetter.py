@@ -28,19 +28,22 @@ class UtcResetter():
         logger.addHandler(coralogix_handler)
     s3_client = boto3.client('s3')
     
-    def main (self, event, context):
-        log = {
-            "id":"Coralogix TCO Resetter",
-            "event":"Triggered"
-            }
-        self.logger.info(log)       
-        listtco = tcowatchdog.TcoWatchDog.listTCO(self, event)
-        listoverride = tcowatchdog.TcoWatchDog.listOverride(self, event)
-        tcowatchdog.TcoWatchDog.delTCO(self, listtco)
-        tcowatchdog.TcoWatchDog.delOverride(self, listoverride)
-        UtcResetter.restoreTCO(self, event, context)
-        UtcResetter.restoreOverride(self, event, context)
-        CoralogixLogger.flush_messages()
+    def main (self, event, context, bucket_name = AWS_BUCKET_NAME):
+        run_status = self.s3_client.get_object(Bucket=bucket_name,Key='tcowatchdog_executed')['Body'].read().decode('ascii')
+        if run_status == 'True':
+            log = {
+                "id":"Coralogix TCO Resetter",
+                "event":"Triggered"
+                }
+            self.logger.info(log)       
+            listtco = tcowatchdog.TcoWatchDog.listTCO(self, event)
+            listoverride = tcowatchdog.TcoWatchDog.listOverride(self, event)
+            tcowatchdog.TcoWatchDog.delTCO(self, listtco)
+            tcowatchdog.TcoWatchDog.delOverride(self, listoverride)
+            UtcResetter.restoreTCO(self, event, context)
+            UtcResetter.restoreOverride(self, event, context)
+            self.s3_client.put_object(Bucket=bucket_name,Key='tcowatchdog_executed', Body="False") 
+            CoralogixLogger.flush_messages()
 
     def restoreTCO(self, event, context, bucket_name = AWS_BUCKET_NAME):
         listtco = json.loads(self.s3_client.get_object(Bucket=bucket_name,Key='listtco_latest.json')['Body'].read())

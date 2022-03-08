@@ -1,4 +1,5 @@
 import boto3
+from botocore.exceptions import ClientError
 import os
 import logging
 from coralogix.handlers import CoralogixLogger
@@ -29,22 +30,24 @@ class UtcResetter():
     s3_client = boto3.client('s3')
     
     def main (self, event, context, bucket_name = AWS_BUCKET_NAME):
-        response = self.s3_client.list_objects_v2(Bucket=bucket_name)
-        for element in response["Contents"]:
-            if element["Key"] == "tcowatchdog.active":
-                log = {
+        try:
+            run_status = self.s3_client.get_object(Bucket=bucket_name,Key='tcowatchdog.active')['Body'].read()
+            log = {
                 "id":"Coralogix TCO Resetter",
                 "event":"Triggered"
                 }
-                self.logger.info(log)       
-                listtco = tcowatchdog.TcoWatchDog.listTCO(self, event)
-                listoverride = tcowatchdog.TcoWatchDog.listOverride(self, event)
-                tcowatchdog.TcoWatchDog.delTCO(self, listtco)
-                tcowatchdog.TcoWatchDog.delOverride(self, listoverride)
-                UtcResetter.restoreTCO(self, event, context)
-                UtcResetter.restoreOverride(self, event, context)
-                self.s3_client.delete_object(Bucket=bucket_name,Key='tcowatchdog.active') 
-                CoralogixLogger.flush_messages()
+            self.logger.info(log)       
+            listtco = tcowatchdog.TcoWatchDog.listTCO(self, event)
+            listoverride = tcowatchdog.TcoWatchDog.listOverride(self, event)
+            tcowatchdog.TcoWatchDog.delTCO(self, listtco)
+            tcowatchdog.TcoWatchDog.delOverride(self, listoverride)
+            UtcResetter.restoreTCO(self, event, context)
+            UtcResetter.restoreOverride(self, event, context)
+            self.s3_client.delete_object(Bucket=bucket_name,Key='tcowatchdog.active')
+            CoralogixLogger.flush_messages()
+        
+        except ClientError as e:
+            print(e)
 
 
     def restoreTCO(self, event, context, bucket_name = AWS_BUCKET_NAME):

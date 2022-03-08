@@ -8,7 +8,7 @@ def lambda_handler(event,context):
         tcoresetter = utcresetter.UtcResetter()
         tcoresetter.main(event, context)
     else:
-        obj = json.loads(json.dumps(event)) #Test Again.
+        obj = json.loads(json.dumps(event)) 
         if obj["headers"]["Function-Key"] != os.environ.get('FUNCTION_KEY'):
             print("Missing Auth Header !!")
             return {
@@ -23,10 +23,4 @@ def lambda_handler(event,context):
             return {
                 'statusCode': 200,
                 'body': 'Success'
-            }   
-
-if __name__ == "__main__":
-    
-    event = {'version': '0', 'id': '60b2a65a-a2b7-58a9-d613-9274d66263b4', 'detail-type': 'Scheduled Event', 'source': 'aws.events', 'account': '771039649440', 'time': '2021-12-03T21:30:37Z', 'region': 'us-east-1', 'resources': ['arn:aws:events:us-east-1:771039649440:rule/cron'], 'detail': {}}
-    context = {}
-    utcresetter.UtcResetter().main(event, context)
+            }

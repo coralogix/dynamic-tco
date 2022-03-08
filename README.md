@@ -1,8 +1,8 @@
 # TCO Watchdog App
-This application is Basically a tool to facilitate the "No data lost philosophy in Coralogix"
+This application is a tool to facilitate the "No data lost philosophy in Coralogix"
 This tool will use a change in the TCO functionalities in Coralogix to change the manner in which the account units are counted and allow for much more data to flow in but with less features enabled to it.
 
-This compramise will be reverted every day at 00:00 UTC only to wait for the trigger to become active again.
+This compromise will be reverted every day at 00:00 UTC only to wait for the trigger to become active again.
 We do suggest that utilizing this tool would be a second line of defence to a Pay-as-You-Go option enabled on the account.
 
 # Requirements:
@@ -14,7 +14,7 @@ We do suggest that utilizing this tool would be a second line of defence to a Pa
 # Installation of the solution
 ## Installing the Lambda function:
 This lambda will accept POST calles to API Gateway and will keep the original config and current state on S3.
-This will be an alternative to using a Database which will allways cost Somthing, as the rate of IO is rather low here.
+This will be an alternative to using a Database which will allways cost somthing, as the rate of IO is rather low here.
 S3 is cheaper and robust.
 
 The lambda uses AWS SAM deployment framework.

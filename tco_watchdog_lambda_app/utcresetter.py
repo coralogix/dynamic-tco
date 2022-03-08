@@ -46,8 +46,8 @@ class UtcResetter():
             self.s3_client.delete_object(Bucket=bucket_name,Key='tcowatchdog.active')
             CoralogixLogger.flush_messages()
         
-        except ClientError as e:
-            print(e)
+        except ClientError as e: #When the flag is not found, there is no Action taken against TCO API
+            print('Flag Not Found, No action Taken')
 
 
     def restoreTCO(self, event, context, bucket_name = AWS_BUCKET_NAME):

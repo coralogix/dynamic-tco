@@ -1,4 +1,4 @@
-import tcowatchdog
+import dynamictco
 import utcresetter
 import json
 import os
@@ -18,7 +18,7 @@ def lambda_handler(event,context):
 
             return None
         else:
-            tcosetter = tcowatchdog.TcoWatchDog()
+            tcosetter = dynamictco.DynamicTCO()
             tcosetter.main(event, context)
             return {
                 'statusCode': 200,

@@ -1,4 +1,4 @@
-# TCO Watchdog App
+# Dynamic TCO App
 This application is a tool to facilitate the "No data lost philosophy in Coralogix"
 This tool will use a change in the TCO functionalities in Coralogix to change the manner in which the account units are counted and allow for much more data to flow in but with less features enabled to it.
 

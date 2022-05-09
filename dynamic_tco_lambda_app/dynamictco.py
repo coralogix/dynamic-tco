@@ -6,7 +6,7 @@ import requests
 import json
 import datetime
 
-class TcoWatchDog:
+class DynamicTCO:
     def __init__(self):   
         if not os.environ.get('PRIVATE_KEY'):
             raise Exception("Missing the PRIVATE_KEY environment variable. CANNOT CONTINUE")
@@ -14,8 +14,8 @@ class TcoWatchDog:
             raise Exception("Missing the TCO_KEY environment variable. CANNOT CONTINUE")   
     #Take variables from environment   
     PRIVATE_KEY = os.environ.get('PRIVATE_KEY')
-    APP_NAME = os.environ.get('APPLICATION_NAME', 'TCOWATCHDOG')
-    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'TCOWATCHDOG')
+    APP_NAME = os.environ.get('APPLICATION_NAME', 'DYNAMICTCO')
+    SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'DYNAMICTCO')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
     coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/api/v1/logs').split("/")[2]
@@ -29,22 +29,22 @@ class TcoWatchDog:
 
     def main (self, event, context, bucket_name = AWS_BUCKET_NAME):
         log = {
-            "id":"Coralogix TCO WatchDog",
+            "id":"Coralogix Dynamic TCO",
             "event":"Triggered"
             }
         self.logger.info(log)
         #Get current status of TCO Policy and override
-        listtco = TcoWatchDog.listTCO(self, event)
-        listoverride = TcoWatchDog.listOverride(self, event)
+        listtco = DynamicTCO.listTCO(self, event)
+        listoverride = DynamicTCO.listOverride(self, event)
         #Save Current status of TCO and Override to S3 
         self.s3_client.put_object(Bucket=bucket_name,Key='listtco_latest.json', Body=listtco) 
         self.s3_client.put_object(Bucket=bucket_name,Key='listtco_'+datetime.datetime.now().isoformat()+'.json', Body=listtco)
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_latest.json', Body=listoverride)
         self.s3_client.put_object(Bucket=bucket_name,Key='listoverride_'+datetime.datetime.now().isoformat()+'.json', Body=listoverride)
-        TcoWatchDog.delTCO(self, listtco)
-        TcoWatchDog.delOverride(self, listoverride)        
-        TcoWatchDog.applyTco(self, event, context)
-        self.s3_client.put_object(Bucket=bucket_name,Key='tcowatchdog.active', Body="True")        
+        DynamicTCO.delTCO(self, listtco)
+        DynamicTCO.delOverride(self, listoverride)        
+        DynamicTCO.applyTco(self, event, context)
+        self.s3_client.put_object(Bucket=bucket_name,Key='DynamicTCO.active', Body="True")        
         CoralogixLogger.flush_messages()
         
     def applyTco(self,event,context):

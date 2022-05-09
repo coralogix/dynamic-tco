@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  TCO Watchdog App.
+  Dynamic TCO App.
   An app to catch hooks from coralogix notifying the the account is at 90% capacity. 
   the app will reduce the tco policies to the lowests level.
   At 00:00UTC 
@@ -11,7 +11,7 @@ Globals:
     Timeout: 30
     MemorySize: 128
 Resources:
-  TcoWatchdog:
+  DynamicTco:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: ./
@@ -30,5 +30,5 @@ Resources:
         HttpPost: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
           Type: Api
           Properties:
-            Path: '/watchdog_listener'
+            Path: '/dynamictco_listener'
             Method: post

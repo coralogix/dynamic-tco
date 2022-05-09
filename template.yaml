@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  TCO Watchdog App.
+  Dynamic TCO App.
   An app to catch hooks from coralogix notifying the the account is at 90% capacity. 
   the app will reduce the tco policies to the lowests level.
   At 00:00UTC 
@@ -11,10 +11,10 @@ Globals:
     Timeout: 900
     MemorySize: 1024
 Resources:
-  TcoWatchdog:
+  DynamicTCO:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
-      CodeUri: tco_watchdog_lambda_app/
+      CodeUri: dynamic_tco_lambda_app/
       Handler: app.lambda_handler
       Runtime: python3.9
       ReservedConcurrentExecutions: 1

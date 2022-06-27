@@ -32,3 +32,7 @@ Resources:
           Properties:
             Path: '/listener'
             Method: post
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)

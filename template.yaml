@@ -5,11 +5,151 @@ Description: >
   An app to catch hooks from coralogix notifying the the account is at 90% capacity. 
   the app will reduce the tco policies to the lowests level.
   At 00:00UTC 
-
-Globals:
-  Function:
-    Timeout: 900
-    MemorySize: 1024
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: Coralogix-DynamicTco
+    Description: Dynamic TCO.
+    Author: Trindium
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE
+    ReadmeUrl: README.md
+    Labels:
+      - coralogix
+      - logs
+      - tco
+    HomePageUrl: https://coralogix.com
+    SemanticVersion: 1.0.18
+    SourceCodeUrl: https://github.com/coralogix/coralogix-aws-serverless
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Coralogix Configuration
+        Parameters:
+          - CoralogixRegion
+          - PrivateKey
+          - ApplicationName
+          - SubsystemName
+          - FunctionKey
+          - ApiKey
+      - Label:
+          default: Lambda Configuration
+        Parameters:
+          - FunctionArchitecture
+          - FunctionMemorySize
+          - FunctionTimeout
+          - NotificationEmail
+    ParameterLabels:
+      CoralogixRegion:
+        default: Region
+      PrivateKey:
+        default: Private Key
+      ApplicationName:
+        default: Application Name
+      SubsystemName:
+        default: Subsystem Name
+      FunctionKey:
+        default: secretsupersecret
+      ApiKey:
+        default: Alerts Rules Api Key
+      S3BucketName:
+        default: Bucket Name
+      FunctionArchitecture:
+        default: Architecture
+      FunctionMemorySize:
+        default: Memory
+      FunctionTimeout:
+        default: Timeout
+      NotificationEmail:
+        default: Notification Email
+Parameters:
+  CoralogixRegion:
+    Type: String
+    Description: The Coralogix location region [Europe, Europe2, India, Singapore, US]
+    AllowedValues:
+      - Europe
+      - Europe2
+      - India
+      - Singapore
+      - US
+    Default: Europe
+  PrivateKey:
+    Type: String
+    Description: The Coralogix private key which is used to validate your authenticity
+    AllowedPattern: '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}'
+    ConstraintDescription: The PrivateKey should be valid UUID string
+    MinLength: 36
+    MaxLength: 36
+    NoEcho: true
+  ApplicationName:
+    Type: String
+    Description: The name of your application
+    MinLength: 1
+    MaxLength: 64
+  SubsystemName:
+    Type: String
+    Description: The subsystem name of your application
+    MinLength: 1
+    MaxLength: 64
+  FunctionKey:
+    Type: String
+    Description: Secret key that is used to authenticate against the lambda function.
+    Default: 'secretsupersecret'
+  ApiKey:
+    Type: String
+    Description: The Coralogix Alert and Rules Api Key which is used to validate your authenticity
+    AllowedPattern: '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}'
+    ConstraintDescription: The ApiKey should be valid UUID string
+    MinLength: 36
+    MaxLength: 36
+    NoEcho: true
+  S3BucketName:
+    Type: String
+    Description: The name of the S3 bucket to watch
+    AllowedPattern: '^[0-9A-Za-z\.\-_]*(?<!\.)$'
+    MinLength: 3
+    MaxLength: 63
+  FunctionArchitecture:
+    Type: String
+    Description: Lambda function architecture [x86_64, arm64]
+    AllowedValues:
+      - x86_64
+      - arm64
+    Default: x86_64
+  FunctionMemorySize:
+    Type: Number
+    Description: Lambda function memory limit
+    MinValue: 128
+    MaxValue: 10240
+    Default: 1024
+  FunctionTimeout:
+    Type: Number
+    Description: Lambda function timeout limit
+    MinValue: 30
+    MaxValue: 900
+    Default: 300
+  NotificationEmail:
+    Type: String
+    Description: Failure notification email address
+    MaxLength: 320
+    Default: ''
+Mappings:
+  CoralogixRegionMap:
+    Europe:
+      LogUrl: https://api.coralogix.com/api/v1/logs
+    Europe2:
+      LogUrl: https://api.eu2.coralogix.com/api/v1/logs
+    India:
+      LogUrl: https://api.app.coralogix.in/api/v1/logs
+    Singapore:
+      LogUrl: https://api.coralogixsg.com/api/v1/logs
+    US:
+      LogUrl: https://api.coralogix.us/api/v1/logs
+Conditions:
+  IsNotificationEnabled:
+    Fn::Not:
+      - Fn::Equals:
+          - Ref: NotificationEmail
+          - ''
 Resources:
   DynamicTCO:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
@@ -18,17 +158,42 @@ Resources:
       Handler: app.lambda_handler
       Runtime: python3.9
       ReservedConcurrentExecutions: 1
+      Architectures:
+        - Ref: FunctionArchitecture
+      MemorySize:
+        Ref: FunctionMemorySize
+      Timeout:
+        Ref: FunctionTimeout
       Environment:
         Variables:
-          PRIVATE_KEY: "PRIVATE_KEY"
-          APPLICATION_NAME: "APP_NAME"
-          SUBSYSTEM_NAME: "SUBSYSTEM_NAME"
-          TCO_KEY: "CORALOGIX_TCO_KEY"
-          AWS_BUCKET_NAME: "AWSBUCKEY"
-          FUNCTION_KEY: "thisismysecretkey"
+          CORALOGIX_LOG_URL:
+            Fn::FindInMap:
+              - CoralogixRegionMap
+              - Ref: CoralogixRegion
+              - LogUrl
+          PRIVATE_KEY:
+            Ref: PrivateKey
+          APPLICATION_NAME:
+            Ref: ApplicationName
+          SUBSYSTEM_NAME:
+            Ref: SubsystemName
+          TCO_KEY:
+            Ref: ApiKey
+          AWS_BUCKET_NAME:
+            Ref: S3BucketName
+          FUNCTION_KEY:
+            Ref: FunctionKey
       Events:
         ApiEvent: #More info and code examples found at: https://docs.aws.amazon.com/lambda/latest/dg/services-apigateway-code.html#services-apigateway-code-python
           Type: Api
           Properties:
             Path: '/listener'
             Method: post
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)
+      Policies:
+        - S3CrudPolicy:
+            BucketName:
+              Ref: S3BucketName

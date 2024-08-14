@@ -64,21 +64,18 @@ Metadata:
 Parameters:
   CoralogixRegion:
     Type: String
-    Description: The Coralogix location region [Europe, Europe2, India, Singapore, US]
+    Description: The Coralogix location region [EU1, EU2, AP1, AP2, US1, US2]
     AllowedValues:
-      - Europe
-      - Europe2
-      - India
-      - Singapore
-      - US
+      - EU1
+      - EU2
+      - AP1
+      - AP2
+      - US1
+      - US2
     Default: Europe
   PrivateKey:
     Type: String
     Description: The Coralogix private key which is used to validate your authenticity
-    AllowedPattern: '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}'
-    ConstraintDescription: The PrivateKey should be valid UUID string
-    MinLength: 36
-    MaxLength: 36
     NoEcho: true
   ApplicationName:
     Type: String
@@ -97,10 +94,6 @@ Parameters:
   ApiKey:
     Type: String
     Description: The Coralogix Alert and Rules Api Key which is used to validate your authenticity
-    AllowedPattern: '[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{12}'
-    ConstraintDescription: The ApiKey should be valid UUID string
-    MinLength: 36
-    MaxLength: 36
     NoEcho: true
   S3BucketName:
     Type: String
@@ -134,16 +127,19 @@ Parameters:
     Default: ''
 Mappings:
   CoralogixRegionMap:
-    Europe:
-      LogUrl: https://api.coralogix.com/api/v1/logs
-    Europe2:
-      LogUrl: https://api.eu2.coralogix.com/api/v1/logs
-    India:
-      LogUrl: https://api.app.coralogix.in/api/v1/logs
-    Singapore:
-      LogUrl: https://api.coralogixsg.com/api/v1/logs
-    US:
-      LogUrl: https://api.coralogix.us/api/v1/logs
+    CoralogixRegionMap:
+    EU1:
+      Domain: https://ingress.coralogix.com/api/v1/logs
+    EU2:
+      Domain: https://ingress.eu2.coralogix.com/api/v1/logs
+    AP1:
+      Domain: https://ingress.app.coralogix.in/api/v1/logs
+    AP2:
+      Domain: https://ingress.coralogixsg.com/api/v1/logs
+    US1:
+      Domain: https://ingress.coralogix.us/api/v1/logs
+    US2:
+      Domain: https://ingress.cx498.coralogix.com/api/v1/logs
 Conditions:
   IsNotificationEnabled:
     Fn::Not:

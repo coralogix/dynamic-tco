@@ -72,7 +72,7 @@ Parameters:
       - AP2
       - US1
       - US2
-    Default: Europe
+    Default: EU1
   PrivateKey:
     Type: String
     Description: The Coralogix private key which is used to validate your authenticity
@@ -127,7 +127,6 @@ Parameters:
     Default: ''
 Mappings:
   CoralogixRegionMap:
-    CoralogixRegionMap:
     EU1:
       Domain: https://ingress.coralogix.com/api/v1/logs
     EU2:

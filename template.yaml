@@ -128,17 +128,17 @@ Parameters:
 Mappings:
   CoralogixRegionMap:
     EU1:
-      Domain: https://ingress.coralogix.com/api/v1/logs
+      LogUrl: https://ingress.coralogix.com/api/v1/logs
     EU2:
-      Domain: https://ingress.eu2.coralogix.com/api/v1/logs
+      LogUrl: https://ingress.eu2.coralogix.com/api/v1/logs
     AP1:
-      Domain: https://ingress.app.coralogix.in/api/v1/logs
+      LogUrl: https://ingress.app.coralogix.in/api/v1/logs
     AP2:
-      Domain: https://ingress.coralogixsg.com/api/v1/logs
+      LogUrl: https://ingress.coralogixsg.com/api/v1/logs
     US1:
-      Domain: https://ingress.coralogix.us/api/v1/logs
+      LogUrl: https://ingress.coralogix.us/api/v1/logs
     US2:
-      Domain: https://ingress.cx498.coralogix.com/api/v1/logs
+      LogUrl: https://ingress.cx498.coralogix.com/api/v1/logs
 Conditions:
   IsNotificationEnabled:
     Fn::Not:

@@ -9,10 +9,6 @@ def lambda_handler(event,context):
         tcoresetter.main(event, context)
     else:
         obj = json.loads(json.dumps(event))
-    # previous format (not working anymore)
-        # if obj["headers"]["function-key"] != os.environ.get('FUNCTION_KEY'):
-        #     print("headers: ", obj["headers"])
-    # new format (working)
         headers = {k.lower(): v for k, v in obj.get("headers", {}).items()}
         if headers.get("function-key") != os.environ.get('FUNCTION_KEY'):
             print("Missing Auth Header !!")

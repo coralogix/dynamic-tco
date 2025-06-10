@@ -18,7 +18,7 @@ class DynamicTCO:
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'DYNAMICTCO')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')
-    coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/api/v1/logs').split("/")[2]
+    coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/mgmt/openapi/v1/logs').split("/")[2]
     #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)  
@@ -50,7 +50,7 @@ class DynamicTCO:
     def applyTco(self,event,context):
         new_rules=json.loads(event["body"])
         for element in new_rules:
-            arg = requests.post('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
+            arg = requests.post('https://'+self.coralogix_domain+'/mgmt/openapi/v1/policies',
             headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Apply TCO",
@@ -86,7 +86,7 @@ class DynamicTCO:
         self.logger.error(log)
     
     def delTCO(self, str_tcos):
-        tcos = json.loads(str_tcos)
+        tcos = json.loads(str_tcos)["policies"]
         if len(tcos) == 0:
             log = {
                 "Event" : " Deleting Policy",
@@ -94,7 +94,7 @@ class DynamicTCO:
                 }
             self.logger.info(log)        
         for element in tcos:
-            arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/policies/'+element["id"],
+            arg = requests.delete('https://'+self.coralogix_domain+'/api/v1/external/tco/overrides/'+element["id"],
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                 )
             log = {
@@ -111,7 +111,7 @@ class DynamicTCO:
                 self.logger.error(log)
             
     def listTCO(self, arg):
-        arg = requests.get('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
+        arg = requests.get('https://'+self.coralogix_domain+'/mgmt/openapi/v1/policies',
                     headers = { 'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}
                     )
         new_content = json.loads(arg.content)

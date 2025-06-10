@@ -20,7 +20,7 @@ class UtcResetter():
     SUB_SYSTEM = os.environ.get('SUBSYSTEM_NAME', 'DYNAMICTCO')
     TCO_KEY = os.environ.get('TCO_KEY')
     AWS_BUCKET_NAME = os.environ.get('AWS_BUCKET_NAME')    
-    coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/api/v1/logs').split("/")[2]
+    coralogix_domain = os.environ.get('CORALOGIX_LOG_URL', 'https://api.coralogix.com/mgmt/openapi/v1/logs').split("/")[2]
     #Set up logger objects
     logger = logging.getLogger("Python Logger")
     logger.setLevel(logging.DEBUG)
@@ -58,7 +58,7 @@ class UtcResetter():
         listtco = json.loads(self.s3_client.get_object(Bucket=bucket_name,Key='listtco_latest.json')['Body'].read())
         for element in listtco:
             del element['id']
-            arg = requests.post('https://'+self.coralogix_domain+'/api/v1/external/tco/policies',
+            arg = requests.post('https://'+self.coralogix_domain+'/mgmt/openapi/v1/external/tco/policies',
                     headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = element)
             log = {
                 "Event" : "Restoring  TCO",
@@ -79,7 +79,7 @@ class UtcResetter():
             return None    
         for element in listoverride:
             del element['id']
-        arg = requests.post('https://'+self.coralogix_domain+'/api/v1/external/tco/overrides/bulk',
+        arg = requests.post('https://'+self.coralogix_domain+'/mgmt/openapi/v1/external/tco/overrides/bulk',
             headers = {'content-type': 'application/json', 'Authorization': "Bearer " + self.TCO_KEY}, json = listoverride)
         log = {
             "Event" : "Restoring  Overrides",
